@@ -28,5 +28,6 @@
     "tsx": "^4.19.2",
     "typescript": "^5.5.3"
   },
+  "license": "MIT",
   "private": true
 }

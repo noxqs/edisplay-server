@@ -86,3 +86,7 @@ Project layout:
 - [aitjcize/epaper-image-convert](https://github.com/aitjcize/epaper-image-convert) — conversion pipeline
 - [Immich](https://immich.app) — photo library
 - [Open-Meteo](https://open-meteo.com) — weather data
+
+## License
+
+[MIT](LICENSE)
