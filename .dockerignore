@@ -1,0 +1,10 @@
+**/node_modules
+**/dist
+cache
+data
+.git
+.idea
+.vscode
+*.log
+.DS_Store
+.env

@@ -1,0 +1,53 @@
+# TrueNAS Custom App — Node/TS photoframe-server, built & run on boot from mounted source.
+# No prebuilt image / no registry: a stock node:22-alpine container installs deps, runs
+# `npm run build`, then `node dist/index.js`.
+#
+# Host port 8080. Only run one container on 8080 at a time.
+#
+# node_modules + build outputs live on named volumes (pf_*): the pool dataset uses NFSv4 ACLs that
+# reject chmod, which breaks `npm ci`. Source + /data stay on the dataset.
+# Guards check for the actual installed binary (not just the dir) so the empty named-volume mount
+# doesn't fool them into skipping the install.
+#
+# Deploy an update = sync the repo to /mnt/POOL/edisplay/src, then restart this app.
+services:
+  photoframe-server:
+    container_name: photoframe-server
+    image: node:22-alpine
+    working_dir: /app
+    command:
+      - sh
+      - -c
+      - >-
+        apk add --no-cache build-base python3 pkgconf cairo-dev pango-dev
+        jpeg-dev giflib-dev librsvg-dev pixman-dev ttf-dejavu font-noto
+        fontconfig iputils ca-certificates >/dev/null 2>&1 || true;
+        cd /app;
+        [ -x node_modules/.bin/tsc ] || npm ci;
+        [ -x web/node_modules/.bin/vite ] || npm --prefix web ci;
+        npm run build;
+        exec node dist/index.js
+    environment:
+      - PORT=8080
+      - CACHE_DIR=/data/cache
+      - SETTINGS_FILE=/data/settings.json
+      - DB_FILE=/data/app.db
+      - WEB_DIST_DIR=/app/web/dist
+      - TZ=America/New_York
+    ports:
+      - '8080:8080'
+    restart: unless-stopped
+    mem_limit: 1500m
+    volumes:
+      - /mnt/POOL/edisplay/src:/app
+      - /mnt/POOL/edisplay/data:/data
+      - pf_node_modules:/app/node_modules
+      - pf_web_node_modules:/app/web/node_modules
+      - pf_dist:/app/dist
+      - pf_web_dist:/app/web/dist
+
+volumes:
+  pf_node_modules:
+  pf_web_node_modules:
+  pf_dist:
+  pf_web_dist:

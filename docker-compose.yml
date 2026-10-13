@@ -1,0 +1,19 @@
+# Build and run edisplay-server from this repo with Docker Compose:
+#   docker compose up -d --build
+# Then open http://<host>:8080 and configure everything in the web UI.
+services:
+  edisplay-server:
+    build: .
+    container_name: edisplay-server
+    ports:
+      - "8080:8080"
+    environment:
+      - TZ=UTC                       # set your zone (e.g. Europe/Amsterdam) — used by the scheduler
+    volumes:
+      - edisplay-data:/data          # SQLite DB, settings, image cache — back this up
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # reach an Immich running on the Docker host
+    restart: unless-stopped
+
+volumes:
+  edisplay-data:
